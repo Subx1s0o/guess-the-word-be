@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { AmountDTO } from './dto/amount.dto';
 
@@ -14,66 +15,52 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+    if (!user) throw new NotFoundException('User not found');
     const { password, ...userData } = user;
     return userData;
   }
 
   async addMoney(data: AmountDTO) {
-    const { userId, amount } = data;
-
-    if (typeof amount !== 'number') {
+    if (typeof data.amount !== 'number')
       throw new BadRequestException('Amount must be a number');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const user = await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { money: { increment: data.amount } },
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        money: {
-          increment: amount,
-        },
-      },
-    });
-
-    return updatedUser;
+    const { password, ...cleanedUser } = user;
+    return { user: cleanedUser };
   }
 
   async minusMoney(data: AmountDTO) {
-    const { userId, amount } = data;
-
-    if (typeof amount !== 'number') {
+    if (typeof data.amount !== 'number')
       throw new BadRequestException('Amount must be a number');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const user = await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { money: { decrement: data.amount } },
     });
+    const { password, ...cleanedUser } = user;
+    return { user: cleanedUser };
+  }
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        money: {
-          decrement: amount,
-        },
-      },
+  async addWins(data: AmountDTO) {
+    if (typeof data.amount !== 'number')
+      throw new BadRequestException('Amount must be a number');
+    const user = await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { won: { increment: data.amount } },
     });
+    const { password, ...cleanedUser } = user;
+    return { user: cleanedUser };
+  }
 
-    return updatedUser;
+  async addLosed(data: AmountDTO) {
+    if (typeof data.amount !== 'number')
+      throw new BadRequestException('Amount must be a number');
+    const user = await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { losed: { increment: data.amount } },
+    });
+    const { password, ...cleanedUser } = user;
+    return { user: cleanedUser };
   }
 }

@@ -27,6 +27,10 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const { username, email, password } = dto;
 
+    if (!username || !email || !password) {
+      throw new BadRequestException('Missing registration fields');
+    }
+
     const existingUsername = await this.prisma.user.findUnique({
       where: { username },
     });
@@ -63,10 +67,7 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+    return { user, accessToken, refreshToken };
   }
 
   async login(dto: LoginDto) {
@@ -87,10 +88,7 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+    return { user, accessToken, refreshToken };
   }
 
   async refreshToken(token: string) {
@@ -113,7 +111,7 @@ export class AuthService {
       });
 
       return {
-        access_token: newAccessToken,
+        accessToken: newAccessToken,
       };
     } catch (error) {
       throw new BadRequestException('Invalid refresh token');
