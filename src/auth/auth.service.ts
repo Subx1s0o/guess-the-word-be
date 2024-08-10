@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { IAuthResponse } from './dto/auth.interface';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -12,7 +14,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(
+    email: string,
+    pass: string,
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -24,7 +29,7 @@ export class AuthService {
     return null;
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<IAuthResponse> {
     const { username, email, password } = dto;
 
     if (!username || !email || !password) {
@@ -70,7 +75,7 @@ export class AuthService {
     return { user, accessToken, refreshToken };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<IAuthResponse> {
     const { email, password } = dto;
     const user = await this.validateUser(email, password);
 
@@ -91,7 +96,7 @@ export class AuthService {
     return { user, accessToken, refreshToken };
   }
 
-  async refreshToken(token: string) {
+  async refreshToken(token: string): Promise<{ accessToken: string }> {
     try {
       const decoded = this.jwtService.verify(token, {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,

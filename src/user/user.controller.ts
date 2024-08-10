@@ -42,4 +42,9 @@ export class UserController {
     data.userId = req.user.sub;
     return this.userService.addLosed(data);
   }
+
+  @Get('/leaders')
+  async getTopUsers() {
+    return this.getTopUsers();
+  }
 }
