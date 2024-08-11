@@ -45,6 +45,6 @@ export class UserController {
 
   @Get('/leaders')
   async getTopUsers() {
-    return this.getTopUsers();
+    return this.userService.getTopUsers();
   }
 }

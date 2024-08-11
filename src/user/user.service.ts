@@ -113,7 +113,7 @@ export class UserService {
     try {
       const users = await this.prisma.user.findMany({
         orderBy: { games: 'desc' },
-        take: 10,
+        take: 5,
         select: {
           id: true,
           username: true,
